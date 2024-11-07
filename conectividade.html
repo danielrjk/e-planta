@@ -5,6 +5,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conectividade</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .wifi-list-container {
+            max-height: 200px;
+            overflow-y: scroll;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            outline: none;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            position: relative; /* Adicionado para que o cadeado se posicione em relação ao li */
+        }
+
+        li:hover {
+            background-color: #e6f7ff;
+        }
+
+        .wifi-icon {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 1;
+            right: 1; 
+            transform: translate(-185%, 110%);
+        }
+
+        .password-box {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .password-box label {
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .password-box input {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .password-box input:focus {
+            border-color: #5ab4f5;
+            outline: none;
+        }
+
+        .toggle-password {
+            margin-left: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            background: none;
+            border: none;
+            color: #555;
+        }
+    </style>
 </head>
 
 <body>
@@ -37,7 +143,7 @@
             <path
                 d="M9.06 12.44c.196-.196.198-.52-.04-.66A2 2 0 0 0 8 11.5a2 2 0 0 0-1.02.28c-.238.14-.236.464-.04.66l.706.706a.5.5 0 0 0 .707 0l.708-.707z" />
         </svg>
-        <svg id="cadeado" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+        <svg id="cadeado" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
             class="bi bi-lock-fill" viewBox="0 0 16 16">
             <path
                 d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2" />
@@ -46,29 +152,47 @@
 
     <h1>Conectividade</h1>
 
-    <ul>
-        <li>
-            <span class="wifi-icon" data-type="4"></span> Rede1 - Aberta
-        </li>
-        <li>
-            <span class="wifi-icon" data-type="3"></span> Rede2 - Protegida
-        </li>
-        <li>
-            <span class="wifi-icon" data-type="2"></span> Rede3 - Protegida
-        </li>
-        <li>
-            <span class="wifi-icon" data-type="4"></span> Rede4 - Aberta
-        </li>
-    </ul>
+    <div class="wifi-list-container">
+        <ul>
+            <li>
+                <button onclick="showPasswordBox('Rede1')">
+                    <span class="wifi-icon" data-type="4"></span> Rede1
+                </button>
+            </li>
+            <li>
+                <button onclick="showPasswordBox('Rede2')">
+                    <span class="wifi-icon" data-type="3"></span>
+                    <span class="lock-icon"></span> Rede2
+                </button>
+            </li>
+            <li>
+                <button onclick="showPasswordBox('Rede3')">
+                    <span class="wifi-icon" data-type="2"></span>
+                    <span class="lock-icon"></span> Rede3
+                </button>
+            </li>
+            <li>
+                <button onclick="showPasswordBox('Rede4')">
+                    <span class="wifi-icon" data-type="4"></span> Rede4
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="password-box" id="passwordBox">
+        <label for="passwordInput">Digite a senha para <span id="networkName"></span>:</label>
+        <div style="display: flex; align-items: center;">
+            <input type="password" id="passwordInput" placeholder="Digite a senha">
+            <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">👁</button>
+        </div>
+    </div>
 
     <script>
         function setWifiIcon() {
             const wifiIcons = document.querySelectorAll('.wifi-icon');
-            
-            wifiIcons.forEach(function(iconSpan) {
+            wifiIcons.forEach(function (iconSpan) {
                 const type = iconSpan.getAttribute('data-type');
                 const wifiIconDiv = document.querySelector(`#wifi${type}`);
-                
                 if (wifiIconDiv) {
                     const iconClone = wifiIconDiv.cloneNode(true);
                     iconSpan.appendChild(iconClone);
@@ -76,14 +200,38 @@
             });
         }
 
+        function addLockIcon() {
+            const protectedNetworks = document.querySelectorAll('.lock-icon');
+            protectedNetworks.forEach(function (lockSpan) {
+                const lockIconDiv = document.querySelector("#cadeado");
+                if (lockIconDiv) {
+                    const lockClone = lockIconDiv.cloneNode(true);
+                    lockSpan.appendChild(lockClone);
+                }
+            });
+        }
+
+        function showPasswordBox(networkName) {
+            const passwordBox = document.getElementById('passwordBox');
+            const networkLabel = document.getElementById('networkName');
+            networkLabel.textContent = networkName;
+            passwordBox.style.display = 'block';
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleButton = document.querySelector('.toggle-password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.textContent = '👁';
+            }
+        }
+
         setWifiIcon();
-        
-        const protectedNetworks = document.querySelectorAll('li:nth-child(2)');
-        protectedNetworks.forEach(function(network) {
-            const lockIconDiv = document.querySelector("#cadeado");
-            const lockClone = lockIconDiv.cloneNode(true);
-            network.appendChild(lockClone);
-        });
+        addLockIcon();
     </script>
 </body>
 
