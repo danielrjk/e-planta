@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conectividade</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            height: 100%;
+        }
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            height: 100%;
+        }
+
+        .content {
+            flex: 1;
+            overflow: auto;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        footer {
+            background-color: #f5f5f5;
+            padding: 15px;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+        }
+
+        .wifi-list-container {
+            max-height: 400px;
+            overflow-y: scroll;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            outline: none;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 18px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            position: relative;
+            /* Adicionado para que o cadeado se posicione em relação ao li */
+        }
+
+        li:hover {
+            background-color: #e6f7ff;
+        }
+
+        .wifi-icon {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 1;
+            right: 1;
+            transform: translate(-185%, 110%);
+        }
+
+        .password-box {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+        }
+
+        .password-box label {
+            font-size: 16px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .password-box input {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .password-box input:focus {
+            border-color: #5ab4f5;
+            outline: none;
+        }
+
+        .password-container {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .toggle-password {
+            margin-left: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            background: none;
+            border: none;
+            color: #555;
+            width: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-container">
+        <main class="content">
+            <h1>Conectividade</h1>
+            <div class="wifi-list-container">
+                <ul>
+                    {{listagem_wifi}}
+                </ul>
+            </div>
+            <div class="password-box" id="passwordBox">
+                <label for="passwordInput">Digite a senha para <span id="networkName"></span>:</label>
+                <div class="password-container">
+                    <input type="password" id="passwordInput" placeholder="Digite a senha">
+                    <button type="button" class="toggle-password" onclick="togglePasswordVisibility()">👁</button>
+                </div>
+            </div>
+        </main>
+        <footer id="connectFooter" style="display: none;">
+            <button id="connectButton" onclick="connectToWifi()" disabled>
+                Conectar
+            </button>
+        </footer>
+    </div>
+
+    <div style="display: none;">
+        <svg id="wifi4" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-wifi"
+            viewBox="0 0 16 16">
+            <path
+                d="M15.384 6.115a.485.485 0 0 0-.047-.736A12.44 12.44 0 0 0 8 3C5.259 3 2.723 3.882.663 5.379a.485.485 0 0 0-.048.736.52.52 0 0 0 .668.05A11.45 11.45 0 0 1 8 4c2.507 0 4.827.802 6.716 2.164.205.148.49.13.668-.049" />
+            <path
+                d="M13.229 8.271a.482.482 0 0 0-.063-.745A9.46 9.46 0 0 0 8 6c-1.905 0-3.68.56-5.166 1.526a.48.48 0 0 0-.063.745.525.525 0 0 0 .652.065A8.46 8.46 0 0 1 8 7a8.46 8.46 0 0 1 4.576 1.336c.206.132.48.108.653-.065m-2.183 2.183c.226-.226.185-.605-.1-.75A6.5 6.5 0 0 0 8 9c-1.06 0-2.062.254-2.946.704-.285.145-.326.524-.1.75l.015.015c.16.16.407.19.611.09A5.5 5.5 0 0 1 8 10c.868 0 1.69.201 2.42.56.203.1.45.07.61-.091zM9.06 12.44c.196-.196.198-.52-.04-.66A2 2 0 0 0 8 11.5a2 2 0 0 0-1.02.28c-.238.14-.236.464-.04.66l.706.706a.5.5 0 0 0 .707 0l.707-.707z" />
+        </svg>
+        <svg id="wifi3" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+            class="bi bi-wifi-2" viewBox="0 0 16 16">
+            <path fill="#ccc"
+                d="M15.384 6.115a.485.485 0 0 0-.047-.736A12.44 12.44 0 0 0 8 3C5.259 3 2.723 3.882.663 5.379a.485.485 0 0 0-.048.736.52.52 0 0 0 .668.05A11.45 11.45 0 0 1 8 4c2.507 0 4.827.802 6.716 2.164.205.148.49.13.668-.049" />
+            <path
+                d="M13.229 8.271c.216-.216.194-.578-.063-.745A9.46 9.46 0 0 0 8 6c-1.905 0-3.68.56-5.166 1.526a.48.48 0 0 0-.063.745.525.525 0 0 0 .652.065A8.46 8.46 0 0 1 8 7a8.46 8.46 0 0 1 4.577 1.336c.205.132.48.108.652-.065m-2.183 2.183c.226-.226.185-.605-.1-.75A6.5 6.5 0 0 0 8 9c-1.06 0-2.062.254-2.946.704-.285.145-.326.524-.1.75l.015.015c.16.16.408.19.611.09A5.5 5.5 0 0 1 8 10c.868 0 1.69.201 2.42.56.203.1.45.07.611-.091zM9.06 12.44c.196-.196.198-.52-.04-.66A2 2 0 0 0 8 11.5a2 2 0 0 0-1.02.28c-.238.14-.236.464-.04.66l.706.706a.5.5 0 0 0 .708 0l.707-.707z" />
+        </svg>
+        <svg id="wifi2" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+            class="bi bi-wifi-1" viewBox="0 0 16 16">
+            <path fill="#ccc"
+                d="M15.384 6.115a.485.485 0 0 0-.047-.736A12.44 12.44 0 0 0 8 3C5.259 3 2.723 3.882.663 5.379a.485.485 0 0 0-.048.736.52.52 0 0 0 .668.05A11.45 11.45 0 0 1 8 4c2.507 0 4.827.802 6.716 2.164.205.148.49.13.668-.049 M13.229 8.271c.216-.216.194-.578-.063-.745A9.46 9.46 0 0 0 8 6c-1.905 0-3.68.56-5.166 1.526a.48.48 0 0 0-.063.745.525.525 0 0 0 .652.065A8.46 8.46 0 0 1 8 7a8.46 8.46 0 0 1 4.577 1.336c.205.132.48.108.652-.065m-2.183 2.183c.226-.226.185-.605-.1-.75A6.5 6.5 0 0 0 8 9c-1.06 0-2.062.254-2.946.704-.285.145-.326.524-.1.75l.015.015c.16.16.408.19.611.09A5.5 5.5 0 0 1 8 10c.868 0 1.69.201 2.42.56.203.1.45.07.611-.091z" />
+            <path
+                d="M11.046 10.454c.226-.226.185-.605-.1-.75A6.5 6.5 0 0 0 8 9c-1.06 0-2.062.254-2.946.704-.285.145-.326.524-.1.75l.015.015c.16.16.407.19.611.09A5.5 5.5 0 0 1 8 10c.868 0 1.69.201 2.42.56.203.1.45.07.611-.091zM9.06 12.44c.196-.196.198-.52-.04-.66A2 2 0 0 0 8 11.5a2 2 0 0 0-1.02.28c-.238.14-.236.464-.04.66l.706.706a.5.5 0 0 0 .707 0l.708-.707z" />
+        </svg>
+        <svg id="wifi1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+            class="bi bi-wifi-1" viewBox="0 0 16 16">
+            <path fill="#ccc"
+                d="M15.384 6.115a.485.485 0 0 0-.047-.736A12.44 12.44 0 0 0 8 3C5.259 3 2.723 3.882.663 5.379a.485.485 0 0 0-.048.736.52.52 0 0 0 .668.05A11.45 11.45 0 0 1 8 4c2.507 0 4.827.802 6.716 2.164.205.148.49.13.668-.049 M13.229 8.271c.216-.216.194-.578-.063-.745A9.46 9.46 0 0 0 8 6c-1.905 0-3.68.56-5.166 1.526a.48.48 0 0 0-.063.745.525.525 0 0 0 .652.065A8.46 8.46 0 0 1 8 7a8.46 8.46 0 0 1 4.577 1.336c.205.132.48.108.652-.065m-2.183 2.183c.226-.226.185-.605-.1-.75A6.5 6.5 0 0 0 8 9c-1.06 0-2.062.254-2.946.704-.285.145-.326.524-.1.75l.015.015c.16.16.408.19.611.09A5.5 5.5 0 0 1 8 10c.868 0 1.69.201 2.42.56.203.1.45.07.611-.091z" />
+            <path
+                d="M9.06 12.44c.196-.196.198-.52-.04-.66A2 2 0 0 0 8 11.5a2 2 0 0 0-1.02.28c-.238.14-.236.464-.04.66l.706.706a.5.5 0 0 0 .707 0l.708-.707z" />
+        </svg>
+        <svg id="cadeado" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor"
+            class="bi bi-lock-fill" viewBox="0 0 16 16">
+            <path
+                d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2" />
+        </svg>
+    </div>
+
+    <script>
+        function setWifiIcon() {
+            const wifiIcons = document.querySelectorAll('.wifi-icon');
+            wifiIcons.forEach(function (iconSpan) {
+                const type = iconSpan.getAttribute('data-type');
+                const wifiIconDiv = document.querySelector(`#wifi${type}`);
+                if (wifiIconDiv) {
+                    const iconClone = wifiIconDiv.cloneNode(true);
+                    iconSpan.appendChild(iconClone);
+                }
+            });
+        }
+
+        function addLockIcon() {
+            const protectedNetworks = document.querySelectorAll('.lock-icon');
+            protectedNetworks.forEach(function (lockSpan) {
+                const lockIconDiv = document.querySelector("#cadeado");
+                if (lockIconDiv) {
+                    const lockClone = lockIconDiv.cloneNode(true);
+                    lockSpan.appendChild(lockClone);
+                }
+            });
+        }
+
+        function showPasswordBox(networkName, isProtected) {
+            const passwordBox = document.getElementById('passwordBox');
+            const networkLabel = document.getElementById('networkName');
+            const connectButton = document.getElementById('connectButton');
+            const connectFooter = document.getElementById('connectFooter');
+
+            networkLabel.textContent = networkName;
+
+            if (isProtected) {
+                passwordBox.style.display = 'block';
+            } else {
+                passwordBox.style.display = 'none';
+            }
+
+            // Mostra o footer e habilita o botão de conectar
+            connectFooter.style.display = 'block';
+            connectButton.disabled = false;
+            connectButton.setAttribute('data-network', networkName);
+            connectButton.setAttribute('data-isProtected', isProtected);
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleButton = document.querySelector('.toggle-password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.textContent = '👁';
+            }
+        }
+
+        function connectToWifi() {
+            const connectButton = document.getElementById('connectButton');
+            const networkName = connectButton.getAttribute('data-network');
+            const isProtected = connectButton.getAttribute('data-isProtected') === 'true';
+            const password = document.getElementById('passwordInput').value;
+
+            if (isProtected && password === '') {
+                alert('Por favor, insira a senha para a rede ' + networkName);
+                return;
+            }
+
+            fetch('/conectar_wifi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ssid: networkName,
+                    password: isProtected ? password : ''
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Conectado com sucesso à rede ' + networkName);
+                    } else {
+                        alert('Falha ao conectar: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    alert('Erro ao tentar conectar ao WiFi.');
+                });
+        }
+
+        setWifiIcon();
+        addLockIcon();
+    </script>
+</body>
+
+</html>

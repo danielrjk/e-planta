@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listagem de Plantas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .plant-info {
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        .plant-info h2 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Listagem de Plantas</h1>
+    <select id="plantSelect" onchange="showPlantDetails()">
+        <option value="">Selecione uma planta...</option>
+        <!-- Opções preenchidas dinamicamente -->
+    </select>
+    <div class="plant-info" id="plantInfo">
+        <h2 id="plantName"></h2>
+        <p><strong>Descrição:</strong> <span id="plantDescription"></span></p>
+        <p><strong>Umidade do Solo:</strong> <span id="soilMoisture"></span>%</p>
+        <p><strong>Luminosidade:</strong> <span id="luminosity"></span>%</p>
+        <p><strong>Temperatura do Ar:</strong> <span id="airTemperature"></span>°C</p>
+        <p><strong>Umidade do Ar:</strong> <span id="airHumidity"></span>%</p>
+        <p><strong>Nitrogênio:</strong> <span id="nitrogen"></span></p>
+        <p><strong>Fósforo:</strong> <span id="phosphorus"></span></p>
+        <p><strong>Potássio:</strong> <span id="potassium"></span></p>
+    </div>
+
+    <script>
+        async function fetchPlants() {
+            try {
+                const response = await fetch('/api/plantas'); // URL da API no ESP32
+                const plants = await response.json();
+                const select = document.getElementById('plantSelect');
+
+                plants.forEach(plant => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(plant); // Armazena os dados da planta em formato JSON
+                    option.textContent = plant.nome; // Nome da planta
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro ao buscar plantas:', error);
+            }
+        }
+
+        function showPlantDetails() {
+            const select = document.getElementById('plantSelect');
+            const selectedOption = select.value;
+
+            if (selectedOption) {
+                const plant = JSON.parse(selectedOption); // Converte a string JSON de volta para um objeto
+
+                document.getElementById('plantName').textContent = plant.nome;
+                document.getElementById('plantDescription').textContent = plant.descricao;
+                document.getElementById('soilMoisture').textContent = plant.umidade_solo;
+                document.getElementById('luminosity').textContent = plant.luminosidade;
+                document.getElementById('airTemperature').textContent = plant.temperatura_ar;
+                document.getElementById('airHumidity').textContent = plant.umidade_ar;
+                document.getElementById('nitrogen').textContent = plant.nitrogenio;
+                document.getElementById('phosphorus').textContent = plant.fosforo;
+                document.getElementById('potassium').textContent = plant.potassio;
+
+                document.getElementById('plantInfo').style.display = 'block';
+            } else {
+                document.getElementById('plantInfo').style.display = 'none';
+            }
+        }
+
+        
+        fetchPlants();
+    </script>
+</body>
+</html>
