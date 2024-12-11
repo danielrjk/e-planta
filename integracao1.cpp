@@ -18,13 +18,11 @@
 #include <WebServer.h>
 #include <LittleFS.h>
 #include "DatabaseConnection.h"
-#include <esp_camera.h>
-#define TEST_AP true
+
+#define TEST_AP false
+
 WebServer servidor(80);
 DatabaseConnection banco;
-camera_config_t config = {
-    .pin_pwdn = -1, .pin_reset = -1, .pin_xclk = 15, .pin_sscb_sda = 4, .pin_sscb_scl = 5, .pin_d7 = 16, .pin_d6 = 17, .pin_d5 = 18, .pin_d4 = 12, .pin_d3 = 10, .pin_d2 = 8, .pin_d1 = 9, .pin_d0 = 11, .pin_vsync = 6, .pin_href = 7, .pin_pclk = 13, .xclk_freq_hz = 20000000, .ledc_timer = LEDC_TIMER_0, .ledc_channel = LEDC_CHANNEL_0, .pixel_format = PIXFORMAT_JPEG, .frame_size = FRAMESIZE_SVGA, .jpeg_quality = 10, .fb_count = 2};
-
 const char *ssid = "E-Planta";
 const char *password = "12345678";
 const char *ssid_connect = "Projeto";
@@ -54,7 +52,8 @@ int porcentagemLuz;
 float umidade_solo;
 
 //---novo---//
-void lerDados() {
+void lerDados()
+{
     File arquivo = LittleFS.open("/dados.json", "r");
     if (!arquivo)
     {
@@ -65,7 +64,8 @@ void lerDados() {
     arquivo.close();
 }
 
-void salvarDados() {
+void salvarDados()
+{
     File arquivo = LittleFS.open("/dados.json", "w");
     if (!arquivo)
     {
@@ -90,6 +90,23 @@ void reconectarWiFi()
         }
         Serial.print("conectado!\nEndereço IP: ");
         Serial.println(WiFi.localIP());
+    }
+}
+
+void reconectarMQTT()
+{
+    if (!mqtt.connected())
+    {
+        Serial.print("Conectando MQTT...");
+        while (!mqtt.connected())
+        {
+            mqtt.connect("eplanta", "aula", "zowmad-tavQez");
+            Serial.print(".");
+            delay(1000);
+        }
+        Serial.println(" conectado!");
+
+        mqtt.subscribe("dados");
     }
 }
 
@@ -227,47 +244,10 @@ void listarTodasPlantas()
     }
 }
 
-void paginaCamera()
+void selecionarPlanta()
 {
-    File arquivo = LittleFS.open("/camera.html", "r");
-    if (!arquivo)
+    if (!servidor.hasArg("plain"))
     {
-        servidor.send(500, "text/html", "Erro no HTML");
-        return;
-    }
-    String html = arquivo.readString();
-    arquivo.close();
-    servidor.send(200, "text/html", html);
-}
-
-void paginaStream() {
-    WiFiClient client = servidor.client();
-
-    // Envia cabeçalhos HTTP
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: multipart/x-mixed-replace; boundary=frame");
-    client.println();
-
-    while (client.connected()) {
-        camera_fb_t* fb = esp_camera_fb_get();
-        if (!fb) {
-            Serial.println("Erro ao capturar frame");
-            continue;
-        }
-
-        // Envia cada frame com cabeçalhos específicos
-        client.printf("--frame\r\n");
-        client.printf("Content-Type: image/jpeg\r\n");
-        client.printf("Content-Length: %u\r\n\r\n", fb->len);
-        client.write(fb->buf, fb->len);
-        client.printf("\r\n");
-
-        esp_camera_fb_return(fb);
-    }
-}
-
-void selecionarPlanta() {
-    if (!servidor.hasArg("plain")) {
         servidor.send(400, "application/json", "{\"status\":\"error\",\"message\":\"Dados ausentes.\"}");
         return;
     }
@@ -277,7 +257,8 @@ void selecionarPlanta() {
     JsonDocument doc;
     DeserializationError error = deserializeJson(doc, body);
 
-    if (error) {
+    if (error)
+    {
         servidor.send(400, "application/json", "{\"status\":\"error\",\"message\":\"JSON inválido.\"}");
         return;
     }
@@ -307,11 +288,7 @@ void pagina_configuracoes()
 void pagina_inicial()
 {
     home = true;
-    if (!sensorBME.performReading())
-    {
-        Serial.println("Failed to perform reading :(");
-        return;
-    }
+
     tela.fillScreen(GxEPD_WHITE);
     fontes.setFont(u8g2_font_helvB18_te);
 
@@ -423,24 +400,6 @@ void pagina_envia()
     envia_dados(temperatura, porcentagemLuz, umidade_ar, umidade_solo);
 }
 
-
-void reconectarMQTT()
-{
-    if (!mqtt.connected())
-    {
-        Serial.println("Conectando MQTT...");
-        while (!mqtt.connected())
-        {
-            mqtt.connect("projeto", "aula", "zowmad-tavQez");
-            Serial.print(".");
-            delay(1000);
-        }
-        Serial.println(" conectado!");
-
-        mqtt.subscribe("dados");
-    }
-}
-
 void setup()
 {
     // serial
@@ -456,9 +415,6 @@ void setup()
     // wifi
     reconectarWiFi();
     conexaoSegura.setCACert(certificado1);
-
-    // mqtt
-    mqtt.begin("mqtt.janks.dev.br", 8883, conexaoSegura);
 
     // ap
     WiFi.softAP(ssid, senha_f);
@@ -494,7 +450,6 @@ void setup()
     fontes.begin(tela);
     fontes.setForegroundColor(GxEPD_BLACK);
 
-
     //---novo---//
     if (TEST_AP)
     {
@@ -511,8 +466,6 @@ void setup()
 
     servidor.on("/wifi", HTTP_GET, paginaConectividade);
     servidor.on("/plantas", HTTP_GET, paginaSelecionarPlanta);
-    servidor.on("/camera", HTTP_GET, paginaCamera);
-    servidor.on("/stream", HTTP_GET, paginaStream);
     servidor.on("/conectar_wifi", HTTP_POST, conectarWifiHandler);
     servidor.on("/api/plantas", HTTP_GET, listarTodasPlantas);
     servidor.on("/api/selecionar_planta", HTTP_POST, selecionarPlanta);
@@ -537,18 +490,16 @@ void setup()
             ;
     }
 
-    //config.grab_mode = CAMERA_GRAB_LATEST;
-    esp_err_t err = esp_camera_init(&config);
-    if (err != ESP_OK)
-    {
-        Serial.printf("Falha ao inicializar a câmera: 0x%x", err);
-        while (true)
-        {
-        }; // trava programa aqui em caso de erro
-    }
-    //---------//
-
+    // mqtt
+    mqtt.begin("mqtt.janks.dev.br", 8883, conexaoSegura);
     reconectarMQTT();
+
+    if (!sensorBME.performReading())
+    {
+        Serial.println("Failed to perform reading :(");
+        return;
+    }
+    pagina_envia();
 }
 
 void loop()
@@ -558,9 +509,15 @@ void loop()
     {
         if (digitalRead(5) == 1)
         {
-            ESP.restart();
+            // ESP.restart();
         }
         instante_anterior = instante_atual;
+    }
+
+    if (!sensorBME.performReading())
+    {
+        Serial.println("Failed to perform reading :(");
+        return;
     }
     reconectarWiFi();
     reconectarMQTT();
