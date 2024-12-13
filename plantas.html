@@ -24,11 +24,28 @@
         .plant-info h2 {
             margin-top: 0;
         }
+        .submit-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
     <h1>Listagem de Plantas</h1>
-    <select id="plantSelect" onchange="showPlantDetails()">
+    <select id="plantSelect" onchange="handlePlantSelection()">
         <option value="">Selecione uma planta...</option>
         <!-- Opções preenchidas dinamicamente -->
     </select>
@@ -42,6 +59,9 @@
         <p><strong>Nitrogênio:</strong> <span id="nitrogen"></span></p>
         <p><strong>Fósforo:</strong> <span id="phosphorus"></span></p>
         <p><strong>Potássio:</strong> <span id="potassium"></span></p>
+    </div>
+    <div class="submit-container">
+        <button id="submitButton" onclick="submitPlant()" disabled>Configurar Planta</button>
     </div>
 
     <script>
@@ -62,9 +82,10 @@
             }
         }
 
-        function showPlantDetails() {
+        function handlePlantSelection() {
             const select = document.getElementById('plantSelect');
             const selectedOption = select.value;
+            const submitButton = document.getElementById('submitButton');
 
             if (selectedOption) {
                 const plant = JSON.parse(selectedOption); // Converte a string JSON de volta para um objeto
@@ -80,12 +101,41 @@
                 document.getElementById('potassium').textContent = plant.potassio;
 
                 document.getElementById('plantInfo').style.display = 'block';
+                submitButton.disabled = false; // Habilita o botão
             } else {
                 document.getElementById('plantInfo').style.display = 'none';
+                submitButton.disabled = true; // Desabilita o botão
             }
         }
 
-        
+        async function submitPlant() {
+            const select = document.getElementById('plantSelect');
+            const selectedOption = select.value;
+
+            if (selectedOption) {
+                const plant = JSON.parse(selectedOption);
+
+                try {
+                    const response = await fetch('/api/selecionar_planta', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(plant) 
+                    });
+
+                    if (response.ok) {
+                        window.location.href = '/wifi'; // Redireciona para a próxima página
+                    } else {
+                        console.error('Erro ao enviar planta:', await response.text());
+                    }
+                } catch (error) {
+                    console.error('Erro na conexão:', error);
+                }
+            }
+        }
+
+        // Carrega a lista de plantas ao carregar a página
         fetchPlants();
     </script>
 </body>
