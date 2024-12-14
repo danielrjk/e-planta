@@ -1,0 +1,10 @@
+{
+  "corRGB": "vermelho",
+  "horarioAcenderTudo": "17:30:00",
+  "horarioApagarTudo": "17:30:10",
+  "brilho": 2,
+  "regularTemperatura": true,
+  "temperatura": 20,
+  "abrirVent": true,
+  "umidade": 80
+}

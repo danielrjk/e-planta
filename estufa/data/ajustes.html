@@ -1,0 +1,31 @@
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<h1> Ajustes:</h1>
+<p>Escolhe a cor: </p>
+
+<form method="POST">
+    <input {{input-vermelho}} type="radio" id="vermelho" name="cor" value="vermelho">
+    <label for="vermelho">vermelho (floração) </label><br>
+    <input {{input-azul}} type="radio" id="azul" name="cor" value="azul">
+    <label for="azul">azul (germinação) </label><br>
+    <input {{input-bicolor}} type="radio" id="bicolor" name="cor" value="bicolor">
+    <label for="bicolor">azul e vermelho (crescimento)</label><br>
+    <input {{input-branco}} type="radio" id="branco" name="cor" value="branco">
+    <label for="branco">branco</label><br>
+    <input {{input-amarelo}} type="radio" id="amarelo" name="cor" value="amarelo">
+    <label for="amarelo">amarelo</label><br> <br>
+    <label for="horario Acender Tudo">horario Acender Tudo: </label><br>
+    <input id="horario Acender Tudo" value="{{t1}}" type="time" step=1 name="t1"> <br>
+     <label for="horario Apagar Tudo">horario Apagar Tudo: </label><br>
+    <input id="horario Apagar Tudo" value="{{t2}}" type="time" step=1 name="t2"> <br><br>
+    <label for="brilho">Brilho (0% - 100%)</label> <br>
+    <input placeholder="brilho" value="{{brilho}}" type="range" min=0 max=100 name="brilho"> <br>
+    <label for="regularTemperatura">Regular a Temperatura ? </label>
+    <input {{input-regularTemperatura}} type="checkbox" id="regularTemperatura" name="regularTemperatura" value="true"> <br>
+  <label for="temperatura">Temperatura em C°: </label>
+  <input placeholder="temperatura" value="{{temperatura}}" type="number" min=0 max=50 name="temperatura"> <br>
+  <label for="abrirVent">Abrir ventilaçao</label>
+  <input {{input-abrirVent}} type="checkbox" id="abrirVent" name="abrirVent" value="true"> <br>
+  <label for="umidade">Umidade en %: </label>
+  <input placeholder="umidade" value="{{umidade}}" type="number" min=0 max=100 name="umidade"> <br><br>
+  <button type="submit">Entrar</button>
+</form>
